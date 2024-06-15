@@ -121,7 +121,7 @@ class BOPM(Page):
         return captcha.solve_captcha()
 
     def set_token(self, token):
-        print(f'Entering token {token}')
+        print(f'Entering token')
         self.find_element(self.token_input).send_keys(token)
 
     def set_captcha(self, solved_captcha):
@@ -155,6 +155,7 @@ class BOPM(Page):
         try:
             self.click_confirm()
         except UnexpectedAlertPresentException:
+            print('Something went wrong, trying again...')
             self.download_pdf(token)
 
 
@@ -187,5 +188,6 @@ with Driver(options=chrome_options) as driver:
         'BO201801031008277',
         'BO201801030810702',
     ]:
+        print(f'############ Processing token: {token} ###########')
         bopm = BOPM(driver, url='http://bopm.policiamilitar.sp.gov.br/')
         bopm.download_pdf(token)
