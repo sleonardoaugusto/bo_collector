@@ -55,7 +55,7 @@ class Page(PageElement, ABC):
 
 class Captcha:
     URL = 'http://2captcha.com/in.php'
-    API_KEY = 'c260a06983e5fbdd5c3c18e9fb7d1699'
+    API_KEY = ''
 
     def __init__(self, captcha_element: WebElement):
         self.captcha_element = captcha_element
@@ -121,7 +121,7 @@ class BOPM(Page):
         return captcha.solve_captcha()
 
     def set_token(self, token):
-        print(f'Entering token')
+        print('Entering token')
         self.find_element(self.token_input).send_keys(token)
 
     def set_captcha(self, solved_captcha):
