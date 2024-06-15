@@ -181,13 +181,10 @@ ensure_directory_exists(DOWNLOAD_DIR)
 
 
 with Driver(options=chrome_options) as driver:
-    for token in [
-        'BO201801011007330',
-        'BO201801010811217',
-        'BO201801010812840',
-        'BO201801031008277',
-        'BO201801030810702',
-    ]:
-        print(f'############ Processing token: {token} ###########')
-        bopm = BOPM(driver, url='http://bopm.policiamilitar.sp.gov.br/')
-        bopm.download_pdf(token)
+    with open('keys.txt', 'r') as f:
+        rows = f.readlines()
+        for content in rows:
+            token = content.strip()
+            print(f'############ Processing token: {token} ###########')
+            bopm = BOPM(driver, url='http://bopm.policiamilitar.sp.gov.br/')
+            bopm.download_pdf(token)
