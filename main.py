@@ -5,12 +5,7 @@ from time import sleep
 from typing import Union
 import logging
 import requests
-from selenium.common import (
-    NoSuchElementException,
-    UnexpectedAlertPresentException,
-    InvalidSessionIdException,
-    WebDriverException,
-)
+from selenium.common import WebDriverException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
@@ -22,7 +17,7 @@ from constants import API_KEY, DOWNLOAD_DIR, BOPM_URL
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
 )
 
