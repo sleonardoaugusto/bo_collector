@@ -154,23 +154,23 @@ class BOPM(Page):
 
         # Loop to check the file every 2 seconds
         waited_for = 0
-        secs = 2
-        _30_secs = 30
+        interval = 5
+        timeout = 30
 
         while True:
             if check_file():
                 print(f"{filename} found in directory.")
                 break
 
-            elif waited_for > _30_secs:
+            elif waited_for > timeout:
                 logger.error(f"{filename} download timetout")
                 break
 
             else:
-                print(f"{filename} not found. Checking again in 2 seconds.")
+                print(f"{filename} not found. Checking again in {interval} seconds.")
 
-            waited_for += secs
-            time.sleep(secs)
+            waited_for += interval
+            time.sleep(interval)
 
     def click_confirm(self):
         self.find_element(self.confirm_btn).click()
