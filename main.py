@@ -81,8 +81,10 @@ class Captcha:
 
     def download_image(self):
         captcha_image = self.captcha_element.screenshot_as_png
+
         with open('captcha.png', 'wb') as f:
             f.write(captcha_image)
+
         logger.info("Downloaded captcha image")
         return open("captcha.png", "rb")
 
@@ -108,11 +110,14 @@ class Captcha:
         )
         for i in range(20):  # Retry for up to 20 times with a 5-second interval
             response = requests.get(token_url)
+
             if response.text.split('|')[0] == 'OK':
                 captcha_text = response.text.split('|')[1]
                 logger.info("Captcha solved")
                 return captcha_text
+
             time.sleep(3)
+
         else:
             logger.error("Captcha solving timed out")
 
@@ -202,9 +207,11 @@ class BOPM(Page):
         try:
             self.click_confirm()
             self.wait_for_download(token)
+
         except InvalidCaptchaException:
             logger.info("Captcha is invalid, retrying...")
             self.download_pdf(token)
+
         except InvalidTokenException:
             logger.info("Token invalid, ignoring...")
             pass
