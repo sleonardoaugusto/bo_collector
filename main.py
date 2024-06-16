@@ -5,7 +5,12 @@ from time import sleep
 from typing import Union
 import logging
 import requests
-from selenium.common import NoSuchElementException, UnexpectedAlertPresentException
+from selenium.common import (
+    NoSuchElementException,
+    UnexpectedAlertPresentException,
+    InvalidSessionIdException,
+    WebDriverException,
+)
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
@@ -22,6 +27,14 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+
+class InvalidTokenException(WebDriverException):
+    """Thrown when then token is invalid."""
+
+
+class InvalidCaptchaException(WebDriverException):
+    """Thrown when the captcha is invalid."""
 
 
 def ensure_directory_exists(directory):
@@ -119,6 +132,7 @@ class BOPM(Page):
     captcha_input = (By.ID, 'captcha')
     confirm_btn = (By.ID, 'btnConfirmar')
     error_dialog = (By.ID, 'ModalFlutuanteErro')
+    error_message = (By.XPATH, '//*[@id="ModalFlutuanteErro"]/div/div[2]/h3/span')
 
     def get_captcha(self):
         captcha = Captcha(self.find_element(self.captcha_img))
@@ -136,19 +150,30 @@ class BOPM(Page):
         self.find_element(self.confirm_btn).click()
         logger.info("Clicked confirm button")
 
-        if self.has_error():
-            logger.error("Error dialog present after clicking confirm")
-            raise UnexpectedAlertPresentException
+        self.validate()
 
         time.sleep(20)
 
-    def has_error(self):
-        try:
-            element = self.find_element(self.error_dialog)
-            display_value = element.value_of_css_property('display')
-            return display_value == 'block'
-        except NoSuchElementException:
-            return False
+    def validate(self):
+        element = self.find_element(self.error_dialog)
+        display_value = element.value_of_css_property('display')
+
+        if display_value == 'block':
+            logger.error("Error dialog present after clicking confirm")
+            error_text = self.find_element(self.error_message).text
+
+            if (
+                "Não há registro eletrônico de ocorrência para o token informado!"
+                in error_text
+            ):
+                raise InvalidTokenException
+
+            elif "Token inválido!" in error_text:
+                logger.error(f"Error message: {error_text}")
+                raise InvalidCaptchaException
+
+            else:
+                logger.info("No relevant error messages found")
 
     def download_pdf(self, token):
         self.open()
@@ -157,9 +182,12 @@ class BOPM(Page):
 
         try:
             self.click_confirm()
-        except UnexpectedAlertPresentException:
-            logger.info("Retrying due to unexpected alert")
+        except InvalidCaptchaException:
+            logger.info("Captcha is invalid, retrying...")
             self.download_pdf(token)
+        except InvalidTokenException:
+            logger.info("Token invalid, ignoring...")
+            pass
 
 
 chrome_options = Options()
