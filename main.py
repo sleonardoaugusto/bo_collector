@@ -164,11 +164,11 @@ class BOPM(Page):
 
             if (
                 "Não há registro eletrônico de ocorrência para o token informado!"
-                in error_text
+                or "Token inválido!" in error_text
             ):
                 raise InvalidTokenException
 
-            elif "Token inválido!" in error_text:
+            elif "Captcha inválido" in error_text:
                 logger.error(f"Error message: {error_text}")
                 raise InvalidCaptchaException
 
