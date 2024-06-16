@@ -92,19 +92,19 @@ class Captcha:
         captcha_id = captcha_response.text.split('|')[1]
 
         # Wait for 2Captcha to solve the captcha
-        time.sleep(5)  # Adjust the sleep time as needed
+        time.sleep(7)  # Adjust the sleep time as needed
 
         # Get the solved captcha text
         token_url = (
             f"http://2captcha.com/res.php?key={API_KEY}&action=get&id={captcha_id}"
         )
         for i in range(20):  # Retry for up to 20 times with a 5-second interval
-            time.sleep(5)
             response = requests.get(token_url)
             if response.text.split('|')[0] == 'OK':
                 captcha_text = response.text.split('|')[1]
                 logger.info("Captcha solved")
                 return captcha_text
+            time.sleep(3)
         else:
             logger.error("Captcha solving timed out")
 
@@ -184,9 +184,21 @@ ensure_directory_exists(DOWNLOAD_DIR)
 with Driver(options=chrome_options) as driver:
     with open('keys.txt', 'r') as f:
         rows = f.readlines()
+        counter = 1
+
         for content in rows:
+            start_time = time.time()
+            print(f"Processing {counter} of {len(rows)}...")
+
             token = content.strip()
+
             bopm = BOPM(driver, url=BOPM_URL)
             logger.info(f"Starting PDF download for token: {token}")
             bopm.download_pdf(token)
             logger.info(f"Completed PDF download for token: {token}")
+
+            counter += 1
+
+            end_time = time.time()
+            execution_time = end_time - start_time
+            print(f"Execution time: {execution_time:.4f} seconds")
