@@ -163,7 +163,7 @@ class BOPM(Page):
                 break
 
             elif waited_for > timeout:
-                logger.error(f"{filename} download timetout")
+                logger.error(f"{filename} download time out")
                 break
 
             else:
