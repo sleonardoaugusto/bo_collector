@@ -146,13 +146,26 @@ class BOPM(Page):
         self.find_element(self.captcha_input).send_keys(solved_captcha)
         logger.info(f"Set captcha: {solved_captcha}")
 
+    def wait_for_download(self, token):
+        filename = f'{token}.pdf'
+
+        def check_file():
+            return os.path.isfile(os.path.join(DOWNLOAD_DIR, filename))
+
+        # Loop to check the file every 2 seconds
+        while True:
+            if check_file():
+                print(f"{filename} found in directory.")
+                break
+            else:
+                print(f"{filename} not found. Checking again in 2 seconds.")
+            time.sleep(2)
+
     def click_confirm(self):
         self.find_element(self.confirm_btn).click()
         logger.info("Clicked confirm button")
 
         self.validate()
-
-        time.sleep(20)
 
     def validate(self):
         element = self.find_element(self.error_dialog)
@@ -182,6 +195,7 @@ class BOPM(Page):
 
         try:
             self.click_confirm()
+            self.wait_for_download(token)
         except InvalidCaptchaException:
             logger.info("Captcha is invalid, retrying...")
             self.download_pdf(token)
