@@ -3,7 +3,7 @@ import time
 from abc import ABC
 from time import sleep
 from typing import Union
-
+import logging
 import requests
 from selenium.common import NoSuchElementException, UnexpectedAlertPresentException
 from selenium.webdriver.chrome.options import Options
@@ -12,15 +12,24 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium import webdriver
 
-DOWNLOAD_DIR = 'downloads'
+from constants import API_KEY, DOWNLOAD_DIR, BOPM_URL
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
+)
+
+logger = logging.getLogger(__name__)
 
 
 def ensure_directory_exists(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
-        print(f"Directory {directory} created.")
+        logger.info(f"Created directory: {directory}")
     else:
-        print(f"Directory {directory} already exists.")
+        logger.info(f"Directory already exists: {directory}")
 
 
 class Driver:
@@ -32,6 +41,7 @@ class Driver:
 
     def __exit__(self, type, value, traceback):
         self.webdriver.close()
+        logger.info("WebDriver closed")
 
 
 class PageElement(ABC):
@@ -40,7 +50,9 @@ class PageElement(ABC):
 
     def find_element(self, locator: tuple[str, str]) -> WebElement:
         sleep(1)
-        return self.webdriver.find_element(*locator)
+        element = self.webdriver.find_element(*locator)
+        logger.info(f"Found element with locator: {locator}")
+        return element
 
 
 class Page(PageElement, ABC):
@@ -49,62 +61,54 @@ class Page(PageElement, ABC):
         self.url = url
 
     def open(self):
-        print(f'Opening {self.url}')
         self.webdriver.get(self.url)
+        logger.info(f"Opened URL: {self.url}")
 
 
 class Captcha:
     URL = 'http://2captcha.com/in.php'
-    API_KEY = ''
 
     def __init__(self, captcha_element: WebElement):
         self.captcha_element = captcha_element
 
     def download_image(self):
-        print('Starting processing captcha image...')
         captcha_image = self.captcha_element.screenshot_as_png
-
-        # Download the captcha image
         with open('captcha.png', 'wb') as f:
             f.write(captcha_image)
-
+        logger.info("Downloaded captcha image")
         return open("captcha.png", "rb")
 
     def solve(self, captcha_image):
-        print("Starting 2captcha communication...")
         captcha_file = {'file': captcha_image}
-        captcha_data = {'key': self.API_KEY, 'method': 'post'}
+        captcha_data = {'key': API_KEY, 'method': 'post'}
         captcha_response = requests.post(
             'http://2captcha.com/in.php', files=captcha_file, data=captcha_data
         )
 
         if captcha_response.text.split('|')[0] != 'OK':
-            print('Error submitting captcha to 2Captcha')
+            logger.error("Captcha solving failed")
             exit()
 
         captcha_id = captcha_response.text.split('|')[1]
-        print(f'Communication successful! Captcha ID: {captcha_id}')
 
         # Wait for 2Captcha to solve the captcha
         time.sleep(5)  # Adjust the sleep time as needed
 
         # Get the solved captcha text
         token_url = (
-            f"http://2captcha.com/res.php?key={self.API_KEY}&action=get&id={captcha_id}"
+            f"http://2captcha.com/res.php?key={API_KEY}&action=get&id={captcha_id}"
         )
         for i in range(20):  # Retry for up to 20 times with a 5-second interval
-            print(f'Attempting to solve captcha {i+1} of 20...')
             time.sleep(5)
             response = requests.get(token_url)
             if response.text.split('|')[0] == 'OK':
                 captcha_text = response.text.split('|')[1]
-                print(f'Captcha solved successfully: {captcha_text}')
+                logger.info("Captcha solved")
                 return captcha_text
         else:
-            print('Captcha solving failed')
+            logger.error("Captcha solving timed out")
 
     def solve_captcha(self):
-        print('Starting solving captcha...')
         image = self.download_image()
         return self.solve(image)
 
@@ -121,21 +125,22 @@ class BOPM(Page):
         return captcha.solve_captcha()
 
     def set_token(self, token):
-        print('Entering token')
         self.find_element(self.token_input).send_keys(token)
+        logger.info(f"Set token: {token}")
 
     def set_captcha(self, solved_captcha):
-        print('Entering captcha')
         self.find_element(self.captcha_input).send_keys(solved_captcha)
+        logger.info(f"Set captcha: {solved_captcha}")
 
     def click_confirm(self):
-        print('Clicking confirm button')
         self.find_element(self.confirm_btn).click()
+        logger.info("Clicked confirm button")
 
         if self.has_error():
+            logger.error("Error dialog present after clicking confirm")
             raise UnexpectedAlertPresentException
 
-        time.sleep(10)
+        time.sleep(20)
 
     def has_error(self):
         try:
@@ -143,19 +148,17 @@ class BOPM(Page):
             display_value = element.value_of_css_property('display')
             return display_value == 'block'
         except NoSuchElementException:
-            print(f"Element with ID '{self.error_dialog[1]}' not found.")
             return False
 
     def download_pdf(self, token):
         self.open()
-
         self.set_token(token)
         self.set_captcha(self.get_captcha())
 
         try:
             self.click_confirm()
         except UnexpectedAlertPresentException:
-            print('Something went wrong, trying again...')
+            logger.info("Retrying due to unexpected alert")
             self.download_pdf(token)
 
 
@@ -176,15 +179,14 @@ chrome_options.add_argument(
 )  # Overcome limited resource problems
 chrome_options.add_argument("--disable-gpu")  # Disable GPU acceleration
 
-
 ensure_directory_exists(DOWNLOAD_DIR)
-
 
 with Driver(options=chrome_options) as driver:
     with open('keys.txt', 'r') as f:
         rows = f.readlines()
         for content in rows:
             token = content.strip()
-            print(f'############ Processing token: {token} ###########')
-            bopm = BOPM(driver, url='http://bopm.policiamilitar.sp.gov.br/')
+            bopm = BOPM(driver, url=BOPM_URL)
+            logger.info(f"Starting PDF download for token: {token}")
             bopm.download_pdf(token)
+            logger.info(f"Completed PDF download for token: {token}")
