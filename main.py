@@ -173,7 +173,7 @@ class BOPM(Page):
                 raise InvalidCaptchaException
 
             else:
-                logger.info("No relevant error messages found")
+                logger.info(f"No relevant error messages found, {error_text}")
 
     def download_pdf(self, token):
         self.open()
