@@ -209,11 +209,11 @@ class BOPM(Page):
             self.wait_for_download(token)
 
         except InvalidCaptchaException:
-            logger.info("Captcha is invalid, retrying...")
+            logger.error("Captcha is invalid, retrying...")
             self.download_pdf(token)
 
         except InvalidTokenException:
-            logger.info("Token invalid, ignoring...")
+            logger.error("Token invalid, ignoring...")
             pass
 
 
