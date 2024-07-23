@@ -193,7 +193,6 @@ class BOPM(Page):
                 raise InvalidTokenException
 
             elif "Captcha inválido" in error_text:
-                logger.error(f"Error message: {error_text}")
                 raise InvalidCaptchaException
 
             else:
