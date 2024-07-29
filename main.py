@@ -160,6 +160,7 @@ class BOPM(Page):
         while True:
             if check_file():
                 print(f"{filename} found in directory.")
+                logger.info(f"Completed PDF download for token: {token}")
                 break
 
             elif waited_for > timeout:
@@ -217,6 +218,7 @@ class BOPM(Page):
                 self.download_pdf(token, retry_count=retry_count - 1)
             else:
                 logger.error("Token invalid, attempts exhausted.")
+                logger.error(f"Token {token} invalid, attempts exhausted.")
 
 
 chrome_options = Options()
@@ -252,7 +254,6 @@ with Driver(options=chrome_options) as driver:
             bopm = BOPM(driver, url=BOPM_URL)
             logger.info(f"Starting PDF download for token: {token}")
             bopm.download_pdf(token)
-            logger.info(f"Completed PDF download for token: {token}")
 
             counter += 1
 
