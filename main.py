@@ -217,7 +217,6 @@ class BOPM(Page):
                 logger.error("Token invalid, retrying...")
                 self.download_pdf(token, retry_count=retry_count - 1)
             else:
-                logger.error("Token invalid, attempts exhausted.")
                 logger.error(f"Token {token} invalid, attempts exhausted.")
 
 
