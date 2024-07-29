@@ -198,7 +198,7 @@ class BOPM(Page):
             else:
                 logger.info(f"No relevant error messages found, {error_text}")
 
-    def download_pdf(self, token):
+    def download_pdf(self, token, retry_count=3):
         self.open()
         self.set_token(token)
         self.set_captcha(self.get_captcha())
@@ -212,8 +212,11 @@ class BOPM(Page):
             self.download_pdf(token)
 
         except InvalidTokenException:
-            logger.error("Token invalid, ignoring...")
-            pass
+            if retry_count > 0:
+                logger.error("Token invalid, retrying...")
+                self.download_pdf(token, retry_count=retry_count - 1)
+            else:
+                logger.error("Token invalid, attempts exhausted.")
 
 
 chrome_options = Options()
