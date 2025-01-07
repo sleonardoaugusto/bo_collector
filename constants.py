@@ -1,10 +1,17 @@
 # Load environment variables from .env file
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-DOWNLOAD_DIR = os.getenv('DOWNLOAD_DIR', 'downloads')
-BOPM_URL = os.getenv('BOPM_URL')
-API_KEY = os.getenv('API_KEY')
+# Define the DOWNLOAD_DIR path, resolving to an absolute path for clarity
+_DOWNLOAD_DIR = (
+    Path(__file__).parent / os.getenv("DOWNLOAD_DIR", "downloads")
+).resolve()
+# Convert to string if needed elsewhere (e.g., for JSON serialization or logging)
+DOWNLOAD_DIR = str(_DOWNLOAD_DIR)
+
+BOPM_URL = os.getenv("BOPM_URL")
+API_KEY = os.getenv("API_KEY")
