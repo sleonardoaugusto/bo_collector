@@ -152,7 +152,7 @@ class BOPM(Page):
         def check_file():
             return os.path.isfile(os.path.join(DOWNLOAD_DIR, filename))
 
-        # Loop to check the file every 2 seconds
+        # Loop to check the file every 5 seconds
         waited_for = 0
         interval = 5
         timeout = 30
