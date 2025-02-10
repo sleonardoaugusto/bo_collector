@@ -240,7 +240,7 @@ chrome_options.add_argument("--disable-gpu")  # Disable GPU acceleration
 ensure_directory_exists(DOWNLOAD_DIR)
 
 with Driver(options=chrome_options) as driver:
-    with open('keys.txt', 'r') as f:
+    with open('tokens.txt', 'r') as f:
         rows = f.readlines()
         counter = 1
 
