@@ -14,4 +14,4 @@ _DOWNLOAD_DIR = (
 DOWNLOAD_DIR = str(_DOWNLOAD_DIR)
 
 BOPM_URL = os.getenv("BOPM_URL")
-API_KEY = os.getenv("API_KEY")
+CAPTCHA_API_KEY = os.getenv("CAPTCHA_API_KEY")

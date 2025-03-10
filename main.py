@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium import webdriver
 
-from constants import API_KEY, DOWNLOAD_DIR, BOPM_URL
+from constants import CAPTCHA_API_KEY, DOWNLOAD_DIR, BOPM_URL
 
 # Setup logging
 logging.basicConfig(
@@ -90,7 +90,7 @@ class Captcha:
 
     def solve(self, captcha_image):
         captcha_file = {'file': captcha_image}
-        captcha_data = {'key': API_KEY, 'method': 'post'}
+        captcha_data = {'key': CAPTCHA_API_KEY, 'method': 'post'}
         captcha_response = requests.post(
             'http://2captcha.com/in.php', files=captcha_file, data=captcha_data
         )
@@ -106,7 +106,7 @@ class Captcha:
 
         # Get the solved captcha text
         token_url = (
-            f"http://2captcha.com/res.php?key={API_KEY}&action=get&id={captcha_id}"
+            f"http://2captcha.com/res.php?key={CAPTCHA_API_KEY}&action=get&id={captcha_id}"
         )
         for i in range(20):  # Retry for up to 20 times with a 5-second interval
             response = requests.get(token_url)
@@ -118,8 +118,7 @@ class Captcha:
 
             time.sleep(3)
 
-        else:
-            logger.error("Captcha solving timed out")
+        logger.error("Captcha solving timed out")
 
     def solve_captcha(self):
         image = self.download_image()
@@ -163,12 +162,11 @@ class BOPM(Page):
                 logger.info(f"Completed PDF download for token: {token}")
                 break
 
-            elif waited_for > timeout:
+            if waited_for > timeout:
                 logger.error(f"{filename} download time out")
                 break
 
-            else:
-                print(f"{filename} not found. Checking again in {interval} seconds.")
+            print(f"{filename} not found. Checking again in {interval} seconds.")
 
             waited_for += interval
             time.sleep(interval)
@@ -193,11 +191,10 @@ class BOPM(Page):
             ):
                 raise InvalidTokenException
 
-            elif "Captcha inválido" in error_text:
+            if "Captcha inválido" in error_text:
                 raise InvalidCaptchaException
 
-            else:
-                logger.info(f"No relevant error messages found, {error_text}")
+            logger.info(f"No relevant error messages found, {error_text}")
 
     def download_pdf(self, token, retry_count=3):
         self.open()
