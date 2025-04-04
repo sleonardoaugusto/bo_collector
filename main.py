@@ -7,10 +7,12 @@ import logging
 import requests
 from selenium.common import WebDriverException
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 
 from constants import CAPTCHA_API_KEY, DOWNLOAD_DIR, BOPM_URL
 
@@ -42,7 +44,8 @@ def ensure_directory_exists(directory):
 
 class Driver:
     def __init__(self, options):
-        self.webdriver = webdriver.Chrome(options=options)
+        service = Service(ChromeDriverManager().install())
+        self.webdriver = webdriver.Chrome(service=service, options=options)
 
     def __enter__(self) -> WebDriver:
         return self.webdriver
