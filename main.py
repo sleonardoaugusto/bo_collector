@@ -157,7 +157,7 @@ class BOPM(Page):
         # Loop to check the file every 5 seconds
         waited_for = 0
         interval = 5
-        timeout = 60
+        timeout = 90
 
         while True:
             if check_file():
