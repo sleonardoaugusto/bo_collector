@@ -12,7 +12,6 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
 
 from constants import CAPTCHA_API_KEY, DOWNLOAD_DIR, BOPM_URL
 
@@ -44,8 +43,11 @@ def ensure_directory_exists(directory):
 
 class Driver:
     def __init__(self, options):
-        service = Service(ChromeDriverManager().install())
-        self.webdriver = webdriver.Chrome(service=service, options=options)
+        service = Service(executable_path="/usr/local/bin/chromedriver")
+        self.webdriver = webdriver.Chrome(
+            service=service,
+            options=options
+        )
 
     def __enter__(self) -> WebDriver:
         return self.webdriver
@@ -236,6 +238,8 @@ chrome_options.add_argument(
     "--disable-dev-shm-usage"
 )  # Overcome limited resource problems
 chrome_options.add_argument("--disable-gpu")  # Disable GPU acceleration
+chrome_options.binary_location = "/usr/bin/google-chrome"
+
 
 ensure_directory_exists(DOWNLOAD_DIR)
 
