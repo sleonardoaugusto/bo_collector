@@ -1,5 +1,6 @@
 IMAGE_NAME=bo_collector
 PLATFORM=linux/amd64
+PROJECT_DIR=$(PWD)
 
 all: build run
 
@@ -9,11 +10,15 @@ build:
 
 run:
 	@echo "🚀 Running Docker container..."
-	docker run --platform=$(PLATFORM) --rm -v $(PWD)/downloads:/app/downloads $(IMAGE_NAME)
+	docker run --platform=$(PLATFORM) --rm \
+		-v $(PROJECT_DIR):/app \
+		$(IMAGE_NAME)
 
 shell:
 	@echo "🐚 Starting interactive shell..."
-	docker run --platform=$(PLATFORM) --rm -it -v $(PWD)/downloads:/app/downloads $(IMAGE_NAME) /bin/bash
+	docker run --platform=$(PLATFORM) --rm -it \
+		-v $(PROJECT_DIR):/app \
+		$(IMAGE_NAME) /bin/bash
 
 clean:
 	@echo "🧹 Cleaning up..."

@@ -43,11 +43,7 @@ def ensure_directory_exists(directory):
 
 class Driver:
     def __init__(self, options):
-        service = Service(executable_path="/usr/local/bin/chromedriver")
-        self.webdriver = webdriver.Chrome(
-            service=service,
-            options=options
-        )
+        self.webdriver = webdriver.Chrome(options=options)
 
     def __enter__(self) -> WebDriver:
         return self.webdriver
