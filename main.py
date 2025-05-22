@@ -234,7 +234,6 @@ chrome_options.add_argument(
     "--disable-dev-shm-usage"
 )  # Overcome limited resource problems
 chrome_options.add_argument("--disable-gpu")  # Disable GPU acceleration
-chrome_options.binary_location = "/usr/bin/google-chrome"
 
 
 ensure_directory_exists(DOWNLOAD_DIR)
