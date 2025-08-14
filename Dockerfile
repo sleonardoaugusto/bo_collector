@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-bookworm
 
 # Set Chrome for Testing version and architecture
 ENV CHROME_VERSION=125.0.6422.141
